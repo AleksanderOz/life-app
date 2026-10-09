@@ -1,0 +1,1045 @@
+<!doctype html>
+<html lang="it" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIFE - AI Smart Manager</title>
+    <meta name="theme-color" content="#121212">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="LIFE">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        body { background-color: #121212; color: #e0e0e0; font-family: system-ui, -apple-system, sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .card-img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+    </style>
+</head>
+<body class="p-4 max-w-md mx-auto pb-28 min-h-screen flex flex-col justify-between">
+
+    <div>
+        <!-- Header -->
+        <header class="text-center mb-4 mt-2 relative flex justify-between items-center px-2">
+            <div class="w-8"></div>
+            <h1 class="text-2xl font-black tracking-widest text-white">LIFE</h1>
+            <button onclick="openShareModal()" class="w-8 h-8 bg-zinc-800 hover:bg-zinc-700 text-amber-400 rounded-xl flex items-center justify-center text-sm border border-zinc-700 transition" title="Importa da link">+</button>
+        </header>
+
+        <!-- Menu Rapido in alto (6 Sezioni senza titolo) -->
+        <div class="mb-6">
+            <div class="flex justify-end items-center mb-2 px-1">
+                <button onclick="toggleMenuLock()" id="lock-btn" class="text-xs bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700 font-medium transition flex items-center gap-1">
+                    🔒 Blocca menu
+                </button>
+            </div>
+            <div id="quick-menu" class="grid grid-cols-3 gap-2">
+                <div class="menu-item bg-zinc-900 border border-zinc-800 p-2.5 rounded-2xl text-center flex flex-col items-center justify-center cursor-pointer hover:border-zinc-700 transition" data-section="section-cucina" onclick="handleMenuClick(this)">
+                    <span class="text-lg mb-0.5">🍲</span>
+                    <span class="text-[11px] font-medium text-zinc-300">Cucina</span>
+                </div>
+                <div class="menu-item bg-zinc-900 border border-zinc-800 p-2.5 rounded-2xl text-center flex flex-col items-center justify-center cursor-pointer hover:border-zinc-700 transition" data-section="section-viaggi" onclick="handleMenuClick(this)">
+                    <span class="text-lg mb-0.5">✈️</span>
+                    <span class="text-[11px] font-medium text-zinc-300">Viaggi</span>
+                </div>
+                <div class="menu-item bg-zinc-900 border border-zinc-800 p-2.5 rounded-2xl text-center flex flex-col items-center justify-center cursor-pointer hover:border-zinc-700 transition" data-section="section-film" onclick="handleMenuClick(this)">
+                    <span class="text-lg mb-0.5">🎬</span>
+                    <span class="text-[11px] font-medium text-zinc-300">Film</span>
+                </div>
+                <div class="menu-item bg-zinc-900 border border-zinc-800 p-2.5 rounded-2xl text-center flex flex-col items-center justify-center cursor-pointer hover:border-zinc-700 transition" data-section="section-serie" onclick="handleMenuClick(this)">
+                    <span class="text-lg mb-0.5">📺</span>
+                    <span class="text-[11px] font-medium text-zinc-300">Serie TV</span>
+                </div>
+                <div class="menu-item bg-zinc-900 border border-zinc-800 p-2.5 rounded-2xl text-center flex flex-col items-center justify-center cursor-pointer hover:border-zinc-700 transition" data-section="section-libri" onclick="handleMenuClick(this)">
+                    <span class="text-lg mb-0.5">📚</span>
+                    <span class="text-[11px] font-medium text-zinc-300">Libri</span>
+                </div>
+                <div class="menu-item bg-zinc-900 border border-zinc-800 p-2.5 rounded-2xl text-center flex flex-col items-center justify-center cursor-pointer hover:border-zinc-700 transition" data-section="section-musica" onclick="handleMenuClick(this)">
+                    <span class="text-lg mb-0.5">🎵</span>
+                    <span class="text-[11px] font-medium text-zinc-300">Musica</span>
+                </div>
+            </div>
+            <p id="lock-hint" class="text-[10px] text-zinc-500 text-center mt-1.5 hidden">Tocca un'icona e poi un'altra per scambiare la posizione.</p>
+        </div>
+
+        <!-- Pulsante per tornare alla Home -->
+        <div id="reset-view-container" class="mb-4 hidden">
+            <button onclick="showHome()" class="w-full bg-zinc-800 text-amber-400 border border-amber-500/30 text-xs py-2 rounded-xl font-medium">← Torna alla Home</button>
+        </div>
+
+        <!-- SEZIONE CUCINA -->
+        <div id="section-cucina" class="app-section hidden space-y-4">
+            
+            <div class="mb-3">
+                <h2 class="text-2xl font-bold text-white">Guida alla sopravvivenza</h2>
+            </div>
+
+            <!-- Griglia dei 4 Blocchi Principali -->
+            <div class="grid grid-cols-2 gap-3">
+                <div onclick="switchCucinaSub('spesa-stimata')" class="bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 p-4 rounded-2xl cursor-pointer transition flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-lg">📊</span>
+                        <span class="text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-medium">Budget</span>
+                    </div>
+                    <div>
+                        <p class="text-xs text-zinc-400">Spesa Settimanale</p>
+                        <p class="text-xl font-bold text-emerald-400">€ <span id="total-cost">0.00</span></p>
+                    </div>
+                </div>
+
+                <div onclick="switchCucinaSub('scontrini')" class="bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 p-4 rounded-2xl cursor-pointer transition flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-lg">🧾</span>
+                        <span class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-medium">IA Vision</span>
+                    </div>
+                    <div>
+                        <p class="text-xs text-zinc-400">Scontrini & Negozi</p>
+                        <p class="text-base font-bold text-white mt-0.5">Gestione</p>
+                    </div>
+                </div>
+
+                <div onclick="switchCucinaSub('ricette')" class="bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 p-4 rounded-2xl cursor-pointer transition flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-lg">🍲</span>
+                        <span class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-medium">Ricettario</span>
+                    </div>
+                    <div>
+                        <p class="text-xs text-zinc-400">Ricette</p>
+                        <p class="text-base font-bold text-white mt-0.5" id="meal-count">0 salvate</p>
+                    </div>
+                </div>
+
+                <div onclick="switchCucinaSub('lista-spesa')" class="bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 p-4 rounded-2xl cursor-pointer transition flex flex-col justify-between">
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-lg">🛒</span>
+                        <span class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full font-medium">Bring!</span>
+                    </div>
+                    <div>
+                        <p class="text-xs text-zinc-400">Lista della Spesa</p>
+                        <p class="text-base font-bold text-white mt-0.5">Attiva</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenitore Dinamico delle Sottosezioni Cucina -->
+            <div id="cucina-sub-container" class="mt-4"></div>
+
+        </div>
+
+        <!-- SEZIONE VIAGGI (Stile Wanderlog con Caroselli Partner) -->
+        <div id="section-viaggi" class="app-section mb-6 hidden space-y-5">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">🗺️ I miei Viaggi</h2>
+                    <p class="text-xs text-zinc-400">Pianificazione itinerari e guide esperte</p>
+                </div>
+                <button onclick="openModal('viaggio')" class="text-xs bg-amber-500 text-black px-3 py-1.5 rounded-xl font-bold shadow">+ Nuovo</button>
+            </div>
+
+            <!-- Itinerari Salvati -->
+            <div id="travels-container" class="space-y-4"></div>
+
+            <!-- Carosello Google Travel -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">🧭 Google Travel • Luoghi & Idee</h3>
+                    <span class="text-[10px] text-zinc-500">Scorri →</span>
+                </div>
+                <div id="carousel-google-travel" class="flex gap-2.5 overflow-x-auto no-scrollbar pb-2"></div>
+            </div>
+
+            <!-- Carosello Civitatis -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">🎟️ Civitatis • Tour & Attività</h3>
+                    <span class="text-[10px] text-zinc-500">Scorri →</span>
+                </div>
+                <div id="carousel-civitatis" class="flex gap-2.5 overflow-x-auto no-scrollbar pb-2"></div>
+            </div>
+
+            <!-- Carosello Headout -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">🎭 Headout • Spettacoli & Biglietti</h3>
+                    <span class="text-[10px] text-zinc-500">Scorri →</span>
+                </div>
+                <div id="carousel-headout" class="flex gap-2.5 overflow-x-auto no-scrollbar pb-2"></div>
+            </div>
+
+            <!-- Carosello Travel365 -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center px-1">
+                    <h3 class="text-xs font-bold text-amber-400 uppercase tracking-wider">📍 Travel365 • Guide & Itinerari</h3>
+                    <span class="text-[10px] text-zinc-500">Scorri →</span>
+                </div>
+                <div id="carousel-travel365" class="flex gap-2.5 overflow-x-auto no-scrollbar pb-2"></div>
+            </div>
+        </div>
+
+        <!-- SEZIONE FILM -->
+        <div id="section-film" class="app-section mb-6 hidden">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-2xl font-bold text-white">Stasera Film?</h2>
+                <button onclick="openModal('film')" class="text-xs bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700">+ Manuale</button>
+            </div>
+            <div class="mb-4">
+                <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">✨ Consigliati per te</h3>
+                <div id="ai-movies-recommended" class="flex gap-2 overflow-x-auto no-scrollbar pb-2"></div>
+            </div>
+            <div class="mb-4 flex gap-2">
+                <input type="text" id="search-film-input" placeholder="Cerca film..." oninput="searchMedia('movie')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-xs text-white placeholder-zinc-500">
+                <button onclick="searchMedia('movie')" class="bg-amber-500 text-black font-bold text-xs px-4 rounded-xl">Cerca</button>
+            </div>
+            <div id="tmdb-films-results" class="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-4"></div>
+            <div class="border-t border-zinc-800 pt-3 mb-2">
+                <h3 class="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-2">I tuoi film salvati</h3>
+            </div>
+            <div id="films-container" class="space-y-2"></div>
+        </div>
+
+        <!-- SEZIONE SERIE TV -->
+        <div id="section-serie" class="app-section mb-6 hidden">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-2xl font-bold text-white">Binge watching?</h2>
+                <button onclick="openModal('serie')" class="text-xs bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700">+ Manuale</button>
+            </div>
+            <div class="mb-4">
+                <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">✨ Consigliate per te</h3>
+                <div id="ai-series-recommended" class="flex gap-2 overflow-x-auto no-scrollbar pb-2"></div>
+            </div>
+            <div class="mb-4 flex gap-2">
+                <input type="text" id="search-serie-input" placeholder="Cerca serie TV..." oninput="searchMedia('tv')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-xs text-white placeholder-zinc-500">
+                <button onclick="searchMedia('tv')" class="bg-amber-500 text-black font-bold text-xs px-4 rounded-xl">Cerca</button>
+            </div>
+            <div id="tmdb-series-results" class="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-4"></div>
+            <div class="border-t border-zinc-800 pt-3 mb-2">
+                <h3 class="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-2">Le tue serie salvate</h3>
+            </div>
+            <div id="series-container" class="space-y-2"></div>
+        </div>
+
+        <!-- SEZIONE LIBRI -->
+        <div id="section-libri" class="app-section mb-6 hidden">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-2xl font-bold text-white">La mia Biblioteca</h2>
+                <div class="flex gap-2">
+                    <button id="polyglot-btn" onclick="togglePolyglot()" class="text-xs bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700 font-medium transition" title="Includi libri stranieri">🌐 Poliglotta</button>
+                    <button onclick="openModal('libro')" class="text-xs bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700">+ Manuale</button>
+                </div>
+            </div>
+            <div class="mb-4">
+                <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">✨ Consigliati per te (In italiano)</h3>
+                <div id="ai-books-recommended" class="flex gap-2 overflow-x-auto no-scrollbar pb-2"></div>
+            </div>
+            <div class="mb-4 flex gap-2">
+                <input type="text" id="search-book-input" placeholder="Cerca libri..." oninput="searchMedia('book')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-xs text-white placeholder-zinc-500">
+                <button onclick="searchMedia('book')" class="bg-amber-500 text-black font-bold text-xs px-4 rounded-xl">Cerca</button>
+            </div>
+            <div id="books-search-results" class="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-4"></div>
+            <div class="border-t border-zinc-800 pt-3 mb-2">
+                <h3 class="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-2">I tuoi libri salvati</h3>
+            </div>
+            <div id="books-container" class="space-y-2"></div>
+        </div>
+
+        <!-- SEZIONE MUSICA -->
+        <div id="section-musica" class="app-section mb-6 hidden">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-2xl font-bold text-white">Alec's Mix Vol. 1</h2>
+                <button onclick="openModal('musica')" class="text-xs bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700">+ Manuale</button>
+            </div>
+            <div class="mb-4">
+                <h3 class="text-sm font-bold text-amber-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">✨ Consigliati per te</h3>
+                <div id="ai-music-recommended" class="flex gap-2 overflow-x-auto no-scrollbar pb-2"></div>
+            </div>
+            <div class="mb-4 flex gap-2">
+                <input type="text" id="search-music-input" placeholder="Cerca album o artisti..." oninput="searchMedia('music')" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-2.5 text-xs text-white placeholder-zinc-500">
+                <button onclick="searchMedia('music')" class="bg-amber-500 text-black font-bold text-xs px-4 rounded-xl">Cerca</button>
+            </div>
+            <div id="music-search-results" class="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-4"></div>
+            <div class="border-t border-zinc-800 pt-3 mb-2">
+                <h3 class="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-2">La tua musica salvata</h3>
+            </div>
+            <div id="music-container" class="space-y-2"></div>
+        </div>
+    </div>
+
+    <!-- Frase Ispirazionale Home -->
+    <div id="home-quote" class="my-auto py-12 px-2 text-center">
+        <div class="bg-gradient-to-br from-zinc-900 via-zinc-900/90 to-zinc-950 border border-zinc-800/80 p-8 rounded-3xl shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+            <span class="text-3xl mb-4 block opacity-70">✨</span>
+            <p id="quote-text" class="text-xl sm:text-2xl italic text-zinc-100 font-light leading-relaxed tracking-wide">"Il tempo che ti godi non è mai sprecato."</p>
+        </div>
+    </div>
+
+    <!-- Modale Negozi -->
+    <div id="store-manager-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+            <h3 class="text-lg font-bold text-white mb-2">⚙️ Gestione Negozi & Loghi</h3>
+            <div class="space-y-3 mb-4">
+                <input type="text" id="new-store-name" placeholder="Nome Negozio" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-sm text-white placeholder-zinc-500">
+                <input type="text" id="new-store-logo" placeholder="URL Logo / Favicon" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-sm text-white placeholder-zinc-500">
+                <button onclick="addNewStore()" class="w-full bg-amber-500 text-black py-2.5 rounded-xl font-bold text-xs">Aggiungi Negozio</button>
+            </div>
+            <div id="stores-list-admin" class="space-y-2 max-h-36 overflow-y-auto no-scrollbar mb-4"></div>
+            <button onclick="closeStoreManagerModal()" class="w-full bg-zinc-800 text-zinc-300 py-2.5 rounded-xl font-medium text-xs">Chiudi</button>
+        </div>
+    </div>
+
+    <!-- Modale Inserimento Manuale -->
+    <div id="data-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+            <h3 id="modal-title" class="text-lg font-bold text-white mb-4">Aggiungi Elemento</h3>
+            <div id="modal-fields" class="space-y-3"></div>
+            <div class="flex gap-2 mt-5">
+                <button onclick="closeModal()" class="w-1/2 bg-zinc-800 text-zinc-300 py-2.5 rounded-xl font-medium">Annulla</button>
+                <button onclick="saveItem()" class="w-1/2 bg-amber-500 text-black py-2.5 font-bold rounded-xl">Salva</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale Condivisione -->
+    <div id="share-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-zinc-900 border border-zinc-800 w-full max-w-sm rounded-3xl p-5 shadow-2xl">
+            <h3 class="text-lg font-bold text-white mb-2">Importa in Archivio</h3>
+            <div class="space-y-3">
+                <input type="text" id="shared-url" placeholder="https://..." class="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-sm text-white placeholder-zinc-500">
+                <select id="shared-category" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-sm text-white">
+                    <option value="meal">🍲 Cucina / Ricetta</option>
+                    <option value="film">🎬 Film</option>
+                    <option value="serie">📺 Serie TV</option>
+                    <option value="libro">📚 Libro</option>
+                    <option value="musica">🎵 Musica</option>
+                    <option value="viaggio">✈️ Viaggio</option>
+                </select>
+                <input type="text" id="shared-title" placeholder="Titolo" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-sm text-white placeholder-zinc-500">
+            </div>
+            <div class="flex gap-2 mt-5">
+                <button onclick="closeShareModal()" class="w-1/2 bg-zinc-800 text-zinc-300 py-2.5 rounded-xl font-medium">Annulla</button>
+                <button onclick="processSharedLink()" class="w-1/2 bg-amber-500 text-black py-2.5 font-bold rounded-xl">Salva</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Completo -->
+    <script>
+        const TMDB_API_KEY = "6442e13e964be97c1751ce0649be7260";
+        const GOOGLE_BOOKS_API_KEY = "AIzaSyDA1OXhskomrZJlsxmFl5i0nYbJtyuYzHo";
+
+        let currentCucinaSub = 'ricette';
+        let currentReceiptFilter = 'Tutti';
+        let currentModalType = null;
+        let isPolyglotActive = false;
+
+        function togglePolyglot() {
+            isPolyglotActive = !isPolyglotActive;
+            const btn = document.getElementById("polyglot-btn");
+            btn.className = isPolyglotActive ? "text-xs bg-amber-500 text-black font-bold px-2.5 py-1 rounded-lg border border-amber-500 transition" : "text-xs bg-zinc-800 text-zinc-300 px-2.5 py-1 rounded-lg border border-zinc-700 font-medium transition";
+            fetchAIRecommendations();
+            let q = document.getElementById("search-book-input").value.trim();
+            if (q.length > 0) searchMedia('book');
+        }
+
+        const quotes = [
+            "\"Il vero viaggio di scoperta non consiste nel cercare nuove terre, ma nell'avere nuovi occhi.\"",
+            "\"Il tempo che ti godi non è mai sprecato.\"",
+            "\"La semplicità è l'ultima sofisticazione.\"",
+            "\"Ciò che facciamo oggi, domani diventerà la nostra normalità.\""
+        ];
+        document.getElementById("quote-text").innerText = quotes[Math.floor(Math.random() * quotes.length)];
+
+        let storesRegistry = JSON.parse(localStorage.getItem('life_stores_registry')) || [
+            { name: "Lidl", logo: "https://www.lidl.it/favicon.ico" },
+            { name: "Eurospin", logo: "https://www.eurospin.it/favicon.ico" },
+            { name: "Conad", logo: "https://www.conad.it/favicon.ico" }
+        ];
+
+        let appData = JSON.parse(localStorage.getItem('life_app_data')) || {
+            meals: [{ id: 1, day: "Lunedì", type: "Cena", name: "Pasta fredda con tonno", portions: 2, baseCost: 2.20, year: "2026", img: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=150&q=80" }],
+            grocery: [{ id: 1, name: "Avocado", category: "Frutta e Verdura", icon: "🥑", checked: false }],
+            receipts: [{ id: 1, store: "Lidl", date: "5 Ottobre", total: 34.50 }],
+            films: [{ id: 1, name: "Interstellar", info: "Sci-Fi • 2014", year: "2014", rating: "heart", img: "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg" }],
+            series: [{ id: 1, name: "Dark", info: "3 Stagioni • 2017", year: "2017", rating: "heart", img: "https://image.tmdb.org/t/p/w500/apbrbWs8M9lyOpJYU5WXrpFbk1Z.jpg" }],
+            books: [{ id: 1, name: "Star Wars: Thrawn", info: "Timothy Zahn • 2017", year: "2017", rating: "heart", img: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=250&q=80" }],
+            music: [{ id: 1, name: "The Dark Side of the Moon", info: "Pink Floyd • 1973", author: "Pink Floyd", album: "The Dark Side of the Moon", year: "1973", rating: "heart", img: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=250&q=80" }],
+            travels: [{ id: 1, name: "Torino - Weekend Culturale", info: "Museo Egizio • Parco Valentino", year: "2025", rating: "heart", img: "https://images.unsplash.com/photo-1514896856501-4f1f2382f16d?auto=format&fit=crop&w=300&q=80", stops: ["Museo Egizio", "Parco del Valentino", "Zoom Torino"] }]
+        };
+
+        function saveData() {
+            localStorage.setItem('life_app_data', JSON.stringify(appData));
+            localStorage.setItem('life_stores_registry', JSON.stringify(storesRegistry));
+            renderApp();
+        }
+
+        // Fallback immagini per tutto tranne scontrini
+        function handleImageError(imgElement, query) {
+            imgElement.onerror = null;
+            imgElement.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=150&q=80';
+            imgElement.title = "Immagine non disponibile. Clicca per cercarla online.";
+            imgElement.style.cursor = "pointer";
+            imgElement.onclick = function() {
+                if (confirm(`Impossibile caricare l'immagine per "${query}". Vuoi cercarla online su Google Immagini?`)) {
+                    window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch`, '_blank');
+                }
+            };
+        }
+
+        function switchCucinaSub(subName) {
+            currentCucinaSub = subName;
+            renderCucinaSubSection();
+        }
+
+        function renderCucinaSubSection() {
+            let container = document.getElementById("cucina-sub-container");
+            if (!container) return;
+
+            if (currentCucinaSub === 'spesa-stimata') {
+                container.innerHTML = `
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-xl">
+                        <h3 class="font-bold text-base text-white mb-1">📊 Spesa Stimata Settimanale</h3>
+                        <p class="text-xs text-zinc-400 mb-4">Calcolo basato sui costi delle ricette pianificate</p>
+                        <div class="bg-zinc-800/60 p-4 rounded-2xl mb-4">
+                            <p class="text-xs text-zinc-400 mb-1">Totale Stimato Ricette</p>
+                            <p class="text-2xl font-bold text-emerald-400">€ <span id="sub-total-cost">0.00</span> <span class="text-xs font-normal text-zinc-500">/ € 60.00 budget</span></p>
+                            <div class="w-full bg-zinc-800 h-2 rounded-full mt-3 overflow-hidden">
+                                <div id="sub-cost-bar" class="bg-emerald-500 h-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                let totalCost = 0;
+                appData.meals.forEach(m => totalCost += (m.baseCost || 2.0) * (m.portions || 1));
+                let el = document.getElementById("sub-total-cost");
+                if (el) el.innerText = totalCost.toFixed(2);
+                let bar = document.getElementById("sub-cost-bar");
+                if (bar) bar.style.width = Math.min((totalCost / 60) * 100, 100) + "%";
+            }
+            else if (currentCucinaSub === 'scontrini') {
+                container.innerHTML = `
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-xl">
+                        <div class="flex justify-between items-center mb-3">
+                            <div>
+                                <h3 class="font-bold text-base text-white">🧾 Scontrini & Gestione Negozi</h3>
+                                <p class="text-[11px] text-zinc-400">Gestisci le catene e i tuoi scontrini</p>
+                            </div>
+                            <button onclick="openStoreManagerModal()" class="text-xs bg-zinc-800 text-amber-400 border border-zinc-700 px-2.5 py-1.5 rounded-xl font-medium">⚙️ Negozi</button>
+                        </div>
+                        <div id="store-filters-container" class="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-3"></div>
+                        <div id="receipts-container" class="space-y-2 max-h-48 overflow-y-auto no-scrollbar"></div>
+                    </div>
+                `;
+                renderReceiptsContent();
+            }
+            else if (currentCucinaSub === 'lista-spesa') {
+                container.innerHTML = `
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-xl">
+                        <div class="flex justify-between items-center mb-3">
+                            <div>
+                                <h3 class="font-bold text-base text-white">🛒 Lista della Spesa (Bring!)</h3>
+                                <p class="text-[11px] text-zinc-400">Tocca per aggiungere o spuntare</p>
+                            </div>
+                            <button onclick="openModal('grocery')" class="text-xs bg-amber-500 text-black px-3 py-1.5 rounded-xl font-bold shadow">+ Nuovo</button>
+                        </div>
+                        <div class="grid grid-cols-4 gap-2 mb-4">
+                            <button onclick="quickAddGrocery('Avocado', 'Frutta e Verdura', '🥑')" class="bg-zinc-800 p-2 rounded-2xl text-center flex flex-col items-center justify-center"><span class="text-lg">🥑</span><span class="text-[10px] text-zinc-300 mt-1">Avocado</span></button>
+                            <button onclick="quickAddGrocery('Salmone', 'Freschi', '🐟')" class="bg-zinc-800 p-2 rounded-2xl text-center flex flex-col items-center justify-center"><span class="text-lg">🐟</span><span class="text-[10px] text-zinc-300 mt-1">Salmone</span></button>
+                            <button onclick="quickAddGrocery('Tonno', 'Dispensa', '🥫')" class="bg-zinc-800 p-2 rounded-2xl text-center flex flex-col items-center justify-center"><span class="text-lg">🥫</span><span class="text-[10px] text-zinc-300 mt-1">Tonno</span></button>
+                            <button onclick="quickAddGrocery('Pollo', 'Freschi', '🍗')" class="bg-zinc-800 p-2 rounded-2xl text-center flex flex-col items-center justify-center"><span class="text-lg">🍗</span><span class="text-[10px] text-zinc-300 mt-1">Pollo</span></button>
+                        </div>
+                        <div id="grocery-container" class="space-y-2 max-h-48 overflow-y-auto no-scrollbar"></div>
+                    </div>
+                `;
+                renderGroceryContent();
+            }
+            else if (currentCucinaSub === 'ricette') {
+                container.innerHTML = `
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-xl mb-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-bold text-base text-white">📖 Ricettario</h3>
+                            <button onclick="openModal('meal')" class="text-xs bg-amber-500 text-black px-3 py-1.5 rounded-xl font-bold shadow">+ Manuale</button>
+                        </div>
+                        <div class="mb-3 flex gap-2">
+                            <input type="text" id="recipe-search-input" placeholder="Cerca ricetta o ingrediente online..." class="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-2.5 text-xs text-white placeholder-zinc-500">
+                            <button onclick="searchWebRecipe()" class="bg-amber-500 text-black font-bold text-xs px-3 rounded-xl">🌐 Cerca</button>
+                        </div>
+                        <div id="explore-recipes-results" class="grid grid-cols-2 gap-2.5 max-h-80 overflow-y-auto no-scrollbar"></div>
+                    </div>
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 shadow-xl">
+                        <h3 class="font-bold text-base text-white mb-3">📋 Il tuo Pianificatore Pasti</h3>
+                        <div id="meals-container" class="space-y-3"></div>
+                    </div>
+                `;
+                renderStaticRecipes();
+                renderMealsContent();
+            }
+        }
+
+        function renderStaticRecipes() {
+            let container = document.getElementById("explore-recipes-results");
+            if (!container) return;
+
+            let recipes = [
+                { name: "Salmone al forno con avocado", time: "⏱️ ~20 min", img: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=200&q=80" },
+                { name: "Pasta fredda con tonno", time: "⏱️ ~15 min", img: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&w=200&q=80" },
+                { name: "Petto di pollo al limone", time: "⏱️ ~20 min", img: "https://images.unsplash.com/photo-1604908176997-125f2596f3ed?auto=format&fit=crop&w=200&q=80" },
+                { name: "Porridge d'avena proteico", time: "⏱️ ~10 min", img: "https://images.unsplash.com/photo-1584776296944-ab6fb5763855?auto=format&fit=crop&w=200&q=80" },
+                { name: "Bowl di riso e tonno", time: "⏱️ ~15 min", img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=200&q=80" },
+                { name: "Club sandwich al tacchino", time: "⏱️ ~10 min", img: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?auto=format&fit=crop&w=200&q=80" }
+            ];
+
+            let html = "";
+            recipes.forEach(r => {
+                html += `
+                    <div class="bg-zinc-800/80 border border-zinc-700/60 rounded-2xl p-2.5 flex flex-col justify-between">
+                        <div class="h-24 rounded-xl overflow-hidden bg-zinc-900 mb-2 relative">
+                            <img src="${r.img}" class="card-img" onerror="handleImageError(this, '${r.name}')">
+                            <span class="absolute bottom-1 left-1 bg-black/70 backdrop-blur-md text-amber-400 text-[9px] font-semibold px-1.5 py-0.5 rounded border border-zinc-700/50">${r.time}</span>
+                            <button onclick="addCustomRecipe('${encodeURIComponent(r.name)}', '${r.img}')" class="absolute top-1 right-1 bg-amber-500 text-black font-bold rounded-full w-5 h-5 flex items-center justify-center text-xs shadow hover:bg-amber-400">+</button>
+                        </div>
+                        <div>
+                            <p class="text-[11px] font-bold text-white leading-snug line-clamp-2">${r.name}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function searchWebRecipe() {
+            let query = document.getElementById("recipe-search-input")?.value.trim();
+            if (!query) {
+                alert("Inserisci il nome di un piatto da cercare!");
+                return;
+            }
+            window.open(`https://www.google.com/search?q=${encodeURIComponent(query + " ricetta facile")}`, '_blank');
+        }
+
+        async function searchMedia(type) {
+            let inputId = `search-${type === 'movie' ? 'film' : type === 'tv' ? 'serie' : type === 'book' ? 'book' : 'music'}-input`;
+            let resultsId = type === 'movie' ? 'tmdb-films-results' : type === 'tv' ? 'tmdb-series-results' : type === 'book' ? 'books-search-results' : 'music-search-results';
+            
+            let query = document.getElementById(inputId)?.value.trim();
+            let container = document.getElementById(resultsId);
+            if (!container) return;
+            if (!query || query.length < 2) {
+                container.innerHTML = "";
+                return;
+            }
+
+            container.innerHTML = '<p class="text-xs text-zinc-500 italic">Ricerca in corso...</p>';
+
+            try {
+                if (type === 'movie' || type === 'tv') {
+                    let res = await fetch(`https://api.themoviedb.org/3/search/${type}?api_key=${TMDB_API_KEY}&language=it-IT&query=${encodeURIComponent(query)}`);
+                    let data = await res.json();
+                    let items = (data.results || []).slice(0, 6);
+                    let html = "";
+                    items.forEach(item => {
+                        let title = item.title || item.name;
+                        let date = item.release_date || item.first_air_date || '';
+                        let year = date ? date.split('-')[0] : '';
+                        let poster = item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : 'https://via.placeholder.com/150';
+                        html += `
+                            <div class="bg-zinc-800/80 border border-zinc-700/60 rounded-2xl p-2 w-32 shrink-0 flex flex-col justify-between">
+                                <div class="h-32 rounded-xl overflow-hidden bg-zinc-900 mb-2 relative">
+                                    <img src="${poster}" class="card-img" onerror="handleImageError(this, '${title}')">
+                                    <button onclick="saveMediaItem('${type}', '${encodeURIComponent(title)}', '${year}', '${poster}')" class="absolute top-1.5 right-1.5 bg-amber-500 text-black font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs shadow">+</button>
+                                </div>
+                                <p class="text-[11px] font-bold text-white truncate">${title}</p>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html || '<p class="text-xs text-zinc-500">Nessun risultato.</p>';
+                } 
+                else if (type === 'book') {
+                    let langParam = isPolyglotActive ? '' : '&printType=books';
+                    let res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}${langParam}&key=${GOOGLE_BOOKS_API_KEY}`);
+                    let data = await res.json();
+                    let items = (data.items || []).slice(0, 6);
+                    let html = "";
+                    items.forEach(item => {
+                        let info = item.volumeInfo;
+                        let title = info.title;
+                        let author = info.authors ? info.authors[0] : 'Autore ignoto';
+                        let year = info.publishedDate ? info.publishedDate.split('-')[0] : '';
+                        let thumb = info.imageLinks ? info.imageLinks.thumbnail : 'https://via.placeholder.com/150';
+                        html += `
+                            <div class="bg-zinc-800/80 border border-zinc-700/60 rounded-2xl p-2 w-32 shrink-0 flex flex-col justify-between">
+                                <div class="h-32 rounded-xl overflow-hidden bg-zinc-900 mb-2 relative">
+                                    <img src="${thumb}" class="card-img" onerror="handleImageError(this, '${title} di ${author}')">
+                                    <button onclick="saveMediaItem('book', '${encodeURIComponent(title)}', '${year}', '${thumb}', '${encodeURIComponent(author)}')" class="absolute top-1.5 right-1.5 bg-amber-500 text-black font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs shadow">+</button>
+                                </div>
+                                <p class="text-[11px] font-bold text-white truncate">${title}</p>
+                                <p class="text-[9px] text-zinc-400 truncate">${author}</p>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html || '<p class="text-xs text-zinc-500">Nessun libro trovato.</p>';
+                }
+                else if (type === 'music') {
+                    let res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=album&limit=6`);
+                    let data = await res.json();
+                    let items = data.results || [];
+                    let html = "";
+                    items.forEach(item => {
+                        let album = item.collectionName;
+                        let artist = item.artistName;
+                        let year = item.releaseDate ? item.releaseDate.split('-')[0] : '';
+                        let thumb = item.artworkUrl100 ? item.artworkUrl100.replace('100x100', '300x300') : 'https://via.placeholder.com/150';
+                        html += `
+                            <div class="bg-zinc-800/80 border border-zinc-700/60 rounded-2xl p-2 w-32 shrink-0 flex flex-col justify-between">
+                                <div class="h-32 rounded-xl overflow-hidden bg-zinc-900 mb-2 relative">
+                                    <img src="${thumb}" class="card-img" onerror="handleImageError(this, '${album} ${artist}')">
+                                    <button onclick="saveMediaItem('music', '${encodeURIComponent(album)}', '${year}', '${thumb}', '${encodeURIComponent(artist)}')" class="absolute top-1.5 right-1.5 bg-amber-500 text-black font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs shadow">+</button>
+                                </div>
+                                <p class="text-[11px] font-bold text-white truncate">${album}</p>
+                                <p class="text-[9px] text-zinc-400 truncate">${artist}</p>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html || '<p class="text-xs text-zinc-500">Nessun album trovato.</p>';
+                }
+            } catch (err) {
+                container.innerHTML = '<p class="text-xs text-zinc-500">Errore di connessione.</p>';
+            }
+        }
+
+        async function fetchAIRecommendations() {
+            try {
+                let resFilm = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API_KEY}&language=it-IT&sort_by=popularity.desc&with_genres=878,9648`);
+                let dataFilm = await resFilm.json();
+                let filmHtml = "";
+                (dataFilm.results || []).slice(0, 5).forEach(m => {
+                    let poster = m.poster_path ? `https://image.tmdb.org/t/p/w500${m.poster_path}` : 'https://via.placeholder.com/150';
+                    filmHtml += `
+                        <div class="bg-zinc-800/60 border border-zinc-700/50 rounded-2xl p-2 w-28 shrink-0 flex flex-col justify-between">
+                            <div class="h-28 rounded-xl overflow-hidden bg-zinc-900 mb-1.5 relative">
+                                <img src="${poster}" class="card-img" onerror="handleImageError(this, '${m.title}')">
+                                <button onclick="saveMediaItem('movie', '${encodeURIComponent(m.title)}', '${m.release_date?.split('-')[0]}', '${poster}')" class="absolute top-1 right-1 bg-amber-500 text-black font-bold rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow">+</button>
+                            </div>
+                            <p class="text-[10px] font-bold text-white truncate">${m.title}</p>
+                        </div>
+                    `;
+                });
+                let fEl = document.getElementById("ai-movies-recommended");
+                if (fEl) fEl.innerHTML = filmHtml;
+
+                let resSerie = await fetch(`https://api.themoviedb.org/3/discover/tv?api_key=${TMDB_API_KEY}&language=it-IT&sort_by=popularity.desc&with_genres=9648,18`);
+                let dataSerie = await resSerie.json();
+                let serieHtml = "";
+                (dataSerie.results || []).slice(0, 5).forEach(s => {
+                    let poster = s.poster_path ? `https://image.tmdb.org/t/p/w500${s.poster_path}` : 'https://via.placeholder.com/150';
+                    serieHtml += `
+                        <div class="bg-zinc-800/60 border border-zinc-700/50 rounded-2xl p-2 w-28 shrink-0 flex flex-col justify-between">
+                            <div class="h-28 rounded-xl overflow-hidden bg-zinc-900 mb-1.5 relative">
+                                <img src="${poster}" class="card-img" onerror="handleImageError(this, '${s.name}')">
+                                <button onclick="saveMediaItem('tv', '${encodeURIComponent(s.name)}', '${s.first_air_date?.split('-')[0]}', '${poster}')" class="absolute top-1 right-1 bg-amber-500 text-black font-bold rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow">+</button>
+                            </div>
+                            <p class="text-[10px] font-bold text-white truncate">${s.name}</p>
+                        </div>
+                    `;
+                });
+                let sEl = document.getElementById("ai-series-recommended");
+                if (sEl) sEl.innerHTML = serieHtml;
+
+                // Libri con priorità in italiano se non poliglotta
+                let langRestrict = isPolyglotActive ? '' : '&langRestrict=it';
+                let resBook = await fetch(`https://www.googleapis.com/books/v1/volumes?q=subject:fiction${langRestrict}&key=${GOOGLE_BOOKS_API_KEY}`);
+                let dataBook = await resBook.json();
+                let bookHtml = "";
+                (dataBook.items || []).slice(0, 5).forEach(b => {
+                    let info = b.volumeInfo;
+                    let thumb = info.imageLinks ? info.imageLinks.thumbnail : 'https://via.placeholder.com/150';
+                    bookHtml += `
+                        <div class="bg-zinc-800/60 border border-zinc-700/50 rounded-2xl p-2 w-28 shrink-0 flex flex-col justify-between">
+                            <div class="h-28 rounded-xl overflow-hidden bg-zinc-900 mb-1.5 relative">
+                                <img src="${thumb}" class="card-img" onerror="handleImageError(this, '${info.title}')">
+                                <button onclick="saveMediaItem('book', '${encodeURIComponent(info.title)}', '${info.publishedDate?.split('-')[0]}', '${thumb}', '${encodeURIComponent(info.authors?.[0] || '')}')" class="absolute top-1 right-1 bg-amber-500 text-black font-bold rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow">+</button>
+                            </div>
+                            <p class="text-[10px] font-bold text-white truncate">${info.title}</p>
+                        </div>
+                    `;
+                });
+                let bEl = document.getElementById("ai-books-recommended");
+                if (bEl) bEl.innerHTML = bookHtml;
+
+                let resMusic = await fetch(`https://itunes.apple.com/search?term=ambient+pink+floyd&entity=album&limit=5`);
+                let dataMusic = await resMusic.json();
+                let musicHtml = "";
+                (dataMusic.results || []).forEach(a => {
+                    let thumb = a.artworkUrl100 ? a.artworkUrl100.replace('100x100', '300x300') : 'https://via.placeholder.com/150';
+                    musicHtml += `
+                        <div class="bg-zinc-800/60 border border-zinc-700/50 rounded-2xl p-2 w-28 shrink-0 flex flex-col justify-between">
+                            <div class="h-28 rounded-xl overflow-hidden bg-zinc-900 mb-1.5 relative">
+                                <img src="${thumb}" class="card-img" onerror="handleImageError(this, '${a.collectionName} ${a.artistName}')">
+                                <button onclick="saveMediaItem('music', '${encodeURIComponent(a.collectionName)}', '${a.releaseDate?.split('-')[0]}', '${thumb}', '${encodeURIComponent(a.artistName)}')" class="absolute top-1 right-1 bg-amber-500 text-black font-bold rounded-full w-5 h-5 flex items-center justify-center text-[10px] shadow">+</button>
+                            </div>
+                            <p class="text-[10px] font-bold text-white truncate">${a.collectionName}</p>
+                        </div>
+                    `;
+                });
+                let mEl = document.getElementById("ai-music-recommended");
+                if (mEl) mEl.innerHTML = musicHtml;
+
+                // Caroselli Viaggi Partner (Google Travel, Civitatis, Headout, Travel365)
+                renderTravelCarousels();
+
+            } catch (e) {
+                console.error("Errore caricamento consigli IA", e);
+            }
+        }
+
+        function renderTravelCarousels() {
+            let gtItems = [
+                { title: "Roma Imperiale", desc: "Google Travel", url: "https://www.google.com/travel/things-to-do?q=Rome", img: "https://images.unsplash.com/photo-1552832230-c0197dd311b5?auto=format&fit=crop&w=200&q=80" },
+                { title: "Parigi Romantica", desc: "Google Travel", url: "https://www.google.com/travel/things-to-do?q=Paris", img: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=200&q=80" },
+                { title: "Barcellona d'Autore", desc: "Google Travel", url: "https://www.google.com/travel/things-to-do?q=Barcelona", img: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=200&q=80" }
+            ];
+            let civItems = [
+                { title: "Free Tour di Roma", desc: "Civitatis", url: "https://www.civitatis.com/it/roma/", img: "https://images.unsplash.com/photo-1531572753322-ad063cecc140?auto=format&fit=crop&w=200&q=80" },
+                { title: "Vaticano & Musei", desc: "Civitatis", url: "https://www.civitatis.com/it/roma/visita-guidata-musei-vaticani/", img: "https://images.unsplash.com/photo-1579965342575-16428a7c8889?auto=format&fit=crop&w=200&q=80" },
+                { title: "Tour dei Castelli", desc: "Civitatis", url: "https://www.civitatis.com/it/roma/", img: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=200&q=80" }
+            ];
+            let headItems = [
+                { title: "Colosseo Salta-fila", desc: "Headout", url: "https://www.headout.com/", img: "https://images.unsplash.com/photo-1552549554-972179d6fe78?auto=format&fit=crop&w=200&q=80" },
+                { title: "Mostre Immersive", desc: "Headout", url: "https://www.headout.com/", img: "https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?auto=format&fit=crop&w=200&q=80" },
+                { title: "Bus Turistico Panoramico", desc: "Headout", url: "https://www.headout.com/", img: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=200&q=80" }
+            ];
+            let t365Items = [
+                { title: "Cosa vedere in 3 giorni", desc: "Travel365", url: "https://www.travel365.it/", img: "https://images.unsplash.com/photo-1529260830199-42c24126f198?auto=format&fit=crop&w=200&q=80" },
+                { title: "Borghi più belli d'Italia", desc: "Travel365", url: "https://www.travel365.it/", img: "https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=200&q=80" },
+                { title: "Weekend Termale", desc: "Travel365", url: "https://www.travel365.it/", img: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&w=200&q=80" }
+            ];
+
+            renderCarouselHtml("carousel-google-travel", gtItems);
+            renderCarouselHtml("carousel-civitatis", civItems);
+            renderCarouselHtml("carousel-headout", headItems);
+            renderCarouselHtml("carousel-travel365", t365Items);
+        }
+
+        function renderCarouselHtml(containerId, items) {
+            let el = document.getElementById(containerId);
+            if (!el) return;
+            let html = "";
+            items.forEach(item => {
+                html += `
+                    <div onclick="window.open('${item.url}', '_blank')" class="bg-zinc-800/80 border border-zinc-700/60 rounded-2xl p-2 w-32 shrink-0 cursor-pointer hover:border-amber-500/50 transition flex flex-col justify-between">
+                        <div class="h-24 rounded-xl overflow-hidden bg-zinc-900 mb-1.5 relative">
+                            <img src="${item.img}" class="card-img" onerror="handleImageError(this, '${item.title}')">
+                        </div>
+                        <div>
+                            <p class="text-[11px] font-bold text-white truncate">${item.title}</p>
+                            <p class="text-[9px] text-amber-400 font-medium">${item.desc}</p>
+                        </div>
+                    </div>
+                `;
+            });
+            el.innerHTML = html;
+        }
+
+        function saveMediaItem(category, titleEnc, year, img, extraEnc = '') {
+            let title = decodeURIComponent(titleEnc);
+            let extra = decodeURIComponent(extraEnc);
+            let targetKey = category === 'movie' ? 'films' : category === 'tv' ? 'series' : category === 'book' ? 'books' : 'music';
+            
+            let newItem = {
+                id: Date.now(),
+                name: title,
+                year: year,
+                img: img,
+                rating: 'heart'
+            };
+            if (category === 'book') newItem.info = `${extra} • ${year}`;
+            if (category === 'music') { newItem.author = extra; newItem.album = title; newItem.info = `${extra} • ${year}`; }
+            if (category === 'movie' || category === 'tv') newItem.info = `${year}`;
+
+            appData[targetKey].push(newItem);
+            saveData();
+            alert(`✨ "${title}" salvata con successo!`);
+        }
+
+        function addCustomRecipe(titleEnc, poster) {
+            let title = decodeURIComponent(titleEnc).trim();
+            let exists = appData.meals.some(m => m.name.toLowerCase() === title.toLowerCase());
+            if (exists) {
+                alert(`⚠️ La ricetta "${title}" è già presente nel tuo pianificatore!`);
+                return;
+            }
+            appData.meals.push({
+                day: "Oggi",
+                type: "Pasto",
+                name: title,
+                portions: 2,
+                baseCost: 2.50,
+                year: "2026",
+                img: poster
+            });
+            saveData();
+            alert(`✨ "${title}" aggiunta al pianificatore!`);
+        }
+
+        function renderGroceryContent() {
+            let groceryHTML = "";
+            if (appData.grocery) {
+                appData.grocery.forEach((g, index) => {
+                    let checkStyle = g.checked ? "line-through text-zinc-500 bg-zinc-900/40 opacity-60" : "text-white font-medium bg-zinc-800/80";
+                    groceryHTML += `
+                        <div class="flex justify-between items-center ${checkStyle} px-3 py-2.5 rounded-2xl border border-zinc-700/50 text-xs transition">
+                            <div class="flex items-center space-x-3 cursor-pointer flex-1" onclick="toggleGrocery(${index})">
+                                <span class="text-base">${g.icon || '🛒'}</span>
+                                <div>
+                                    <p class="${g.checked ? 'line-through text-zinc-500' : 'font-bold text-white'}">${g.name}</p>
+                                    <span class="text-[9px] text-zinc-400 uppercase tracking-wider">${g.category || 'Generale'}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="w-5 h-5 rounded-full border border-zinc-600 flex items-center justify-center text-[10px] ${g.checked ? 'bg-amber-500 text-black border-amber-500 font-bold' : ''}">${g.checked ? '✓' : ''}</span>
+                                <button onclick="deleteGrocery(${index})" class="text-zinc-500 hover:text-red-400 p-1">✕</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            let el = document.getElementById("grocery-container");
+            if (el) el.innerHTML = groceryHTML || '<p class="text-[11px] text-zinc-500 text-center py-2">La lista della spesa è vuota.</p>';
+        }
+
+        function renderReceiptsContent() {
+            let filtersHTML = `<button onclick="filterReceipts('Tutti')" class="tag-btn text-[10px] px-3 py-1.5 rounded-xl border font-medium shrink-0 ${currentReceiptFilter === 'Tutti' ? 'bg-amber-500 text-black font-bold border-amber-500' : 'bg-zinc-800 text-zinc-300 border-zinc-700'}">Tutti</button>`;
+            storesRegistry.forEach(s => {
+                let isActive = currentReceiptFilter === s.name;
+                filtersHTML += `
+                    <button onclick="filterReceipts('${s.name}')" class="tag-btn text-[10px] px-3 py-1.5 rounded-xl border font-medium flex items-center gap-1.5 shrink-0 ${isActive ? 'bg-amber-500 text-black font-bold border-amber-500' : 'bg-zinc-800 text-zinc-300 border-zinc-700'}">
+                        <img src="${s.logo}" class="w-3.5 h-3.5 object-contain bg-white rounded p-0.5" onerror="this.src='https://via.placeholder.com/14'"> ${s.name}
+                    </button>
+                `;
+            });
+            let fEl = document.getElementById("store-filters-container");
+            if (fEl) fEl.innerHTML = filtersHTML;
+
+            let receiptsHTML = "";
+            if (appData.receipts) {
+                appData.receipts.forEach((r, index) => {
+                    if (currentReceiptFilter !== 'Tutti' && r.store !== currentReceiptFilter) return;
+                    let storeObj = storesRegistry.find(s => s.name === r.store) || { logo: 'https://via.placeholder.com/14' };
+                    receiptsHTML += `
+                        <div class="flex justify-between items-center bg-zinc-800/60 px-3 py-2.5 rounded-xl border border-zinc-800 text-xs">
+                            <div class="flex items-center gap-2.5">
+                                <span class="px-2.5 py-1 rounded-lg border border-zinc-700 bg-zinc-800 text-[10px] font-bold flex items-center gap-1.5 text-white">
+                                    <img src="${storeObj.logo}" class="w-3.5 h-3.5 object-contain bg-white rounded p-0.5" onerror="this.src='https://via.placeholder.com/14'"> ${r.store}
+                                </span>
+                                <span class="text-zinc-400">(${r.date})</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-emerald-400">€ ${r.total.toFixed(2)}</span>
+                                <button onclick="deleteReceipt(${index})" class="text-zinc-500 hover:text-red-400">✕</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            let rEl = document.getElementById("receipts-container");
+            if (rEl) rEl.innerHTML = receiptsHTML || '<p class="text-[11px] text-zinc-500 text-center py-2">Nessuno scontrino.</p>';
+        }
+
+        function renderMealsContent() {
+            let mealsHTML = "";
+            appData.meals.forEach((m, index) => {
+                let portions = m.portions || 1;
+                let currentTotalCost = (m.baseCost || 2.0) * portions;
+                mealsHTML += `
+                    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-3.5 relative">
+                        <button onclick="deleteItem('meals', ${index})" class="absolute top-3 right-3 text-zinc-500 hover:text-red-400 text-xs">✕</button>
+                        <div class="flex justify-between items-center mb-2 pr-5">
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-400">${m.day}</span>
+                            <span class="text-xs bg-zinc-800 text-zinc-300 px-2 py-0.5 rounded">${m.type}</span>
+                        </div>
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="w-16 h-16 bg-zinc-800 rounded-xl overflow-hidden shrink-0 border border-zinc-700">
+                                <img src="${m.img || 'https://via.placeholder.com/150'}" class="card-img" onerror="handleImageError(this, '${m.name}')">
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-sm text-white">${m.name}</h3>
+                                <p class="text-xs text-emerald-400 font-medium mt-0.5">€ ${currentTotalCost.toFixed(2)} stimati</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center bg-zinc-800/60 px-3 py-1.5 rounded-xl border border-zinc-800">
+                            <span class="text-xs text-zinc-400">Porzioni:</span>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="changePortions(${index}, -1)" class="w-6 h-6 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-white text-xs font-bold flex items-center justify-center">-</button>
+                                <span class="text-xs font-bold text-white w-4 text-center">${portions}</span>
+                                <button onclick="changePortions(${index}, 1)" class="w-6 h-6 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-white text-xs font-bold flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            let mEl = document.getElementById("meals-container");
+            if (mEl) mEl.innerHTML = mealsHTML || '<p class="text-xs text-zinc-500 text-center py-4">Nessuna ricetta nel pianificatore.</p>';
+        }
+
+        function renderMediaLists() {
+            // Render Film, Serie, Libri, Musica
+            ['films', 'series', 'books', 'music'].forEach(cat => {
+                let containerId = cat === 'films' ? 'films-container' : cat === 'series' ? 'series-container' : cat === 'books' ? 'books-container' : 'music-container';
+                let container = document.getElementById(containerId);
+                if (!container) return;
+                let html = "";
+                appData[cat].forEach((item, index) => {
+                    html += `
+                        <div class="flex justify-between items-center bg-zinc-900 border border-zinc-800 p-2.5 rounded-xl text-xs">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 rounded-lg overflow-hidden bg-zinc-800 shrink-0">
+                                    <img src="${item.img || 'https://via.placeholder.com/150'}" class="card-img" onerror="handleImageError(this, '${item.name}')">
+                                </div>
+                                <div>
+                                    <p class="font-bold text-white">${item.name}</p>
+                                    <p class="text-[10px] text-zinc-400">${item.info || item.year || ''}</p>
+                                </div>
+                            </div>
+                            <button onclick="deleteItem('${cat}', ${index})" class="text-zinc-500 hover:text-red-400 p-1">✕</button>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html || `<p class="text-xs text-zinc-500 italic">Nessun elemento salvato.</p>`;
+            });
+
+            // Render Viaggi stile Wanderlog
+            let travelContainer = document.getElementById("travels-container");
+            if (travelContainer) {
+                let travelHtml = "";
+                appData.travels.forEach((t, index) => {
+                    let stopsHtml = "";
+                    if (t.stops && t.stops.length > 0) {
+                        t.stops.forEach(stop => {
+                            stopsHtml += `<li class="text-[11px] text-zinc-300 flex items-center gap-1.5 py-0.5"><span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>${stop}</li>`;
+                        });
+                    }
+                    travelHtml += `
+                        <div class="bg-zinc-900 border border-zinc-800 rounded-3xl overflow-hidden shadow-xl">
+                            <div class="h-32 relative bg-zinc-800">
+                                <img src="${t.img || 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=300&q=80'}" class="card-img" onerror="handleImageError(this, '${t.name}')">
+                                <div class="absolute inset-0 bg-gradient-to-t from-zinc-950/80 via-transparent to-transparent"></div>
+                                <div class="absolute bottom-2.5 left-3 right-3 flex justify-between items-end">
+                                    <div>
+                                        <span class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded font-medium border border-amber-500/30">${t.info || 'Itinerario'}</span>
+                                        <h3 class="text-base font-bold text-white mt-1">${t.name}</h3>
+                                    </div>
+                                    <button onclick="deleteItem('travels', ${index})" class="bg-black/60 text-zinc-400 hover:text-red-400 w-7 h-7 rounded-xl flex items-center justify-center text-xs">✕</button>
+                                </div>
+                            </div>
+                            <div class="p-3.5 space-y-2">
+                                <p class="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Tappe pianificate:</p>
+                                <ul class="space-y-1 mb-2">${stopsHtml || '<li class="text-[11px] text-zinc-500 italic">Nessuna tappa aggiunta.</li>'}</ul>
+                            </div>
+                        </div>
+                    `;
+                });
+                travelContainer.innerHTML = travelHtml || '<p class="text-xs text-zinc-500 italic text-center py-4">Nessun viaggio pianificato.</p>';
+            }
+        }
+
+        function renderApp() {
+            let totalCost = 0;
+            appData.meals.forEach(m => totalCost += (m.baseCost || 2.0) * (m.portions || 1));
+            let costEl = document.getElementById("total-cost");
+            if (costEl) costEl.innerText = totalCost.toFixed(2);
+            let mealCnt = document.getElementById("meal-count");
+            if (mealCnt) mealCnt.innerText = `${appData.meals.length} salvate`;
+
+            renderCucinaSubSection();
+            renderMediaLists();
+            fetchAIRecommendations();
+        }
+
+        function handleMenuClick(element) {
+            let targetId = element.getAttribute("data-section");
+            document.querySelectorAll('.app-section').forEach(sec => sec.classList.add('hidden'));
+            document.getElementById(targetId).classList.remove('hidden');
+            document.getElementById("home-quote").classList.add('hidden');
+            document.getElementById("reset-view-container").classList.remove('hidden');
+            
+            if (targetId === 'section-cucina') {
+                renderCucinaSubSection();
+            }
+        }
+
+        function showHome() {
+            document.querySelectorAll('.app-section').forEach(sec => sec.classList.add('hidden'));
+            document.getElementById("home-quote").classList.remove('hidden');
+            document.getElementById("reset-view-container").classList.add('hidden');
+        }
+
+        let isMenuLocked = true;
+        function toggleMenuLock() {
+            isMenuLocked = !isMenuLocked;
+            const btn = document.getElementById("lock-btn");
+            const hint = document.getElementById("lock-hint");
+            if (!isMenuLocked) {
+                btn.innerHTML = "🔓 Sbloccato";
+                btn.classList.add("bg-amber-500/20", "text-amber-400", "border-amber-500/30");
+                hint.classList.remove("hidden");
+            } else {
+                btn.innerHTML = "🔒 Blocca menu";
+                btn.classList.remove("bg-amber-500/20", "text-amber-400", "border-amber-500/30");
+                hint.classList.add("hidden");
+            }
+        }
+
+        function openShareModal() { document.getElementById("share-modal").classList.remove("hidden"); document.getElementById("share-modal").classList.add("flex"); }
+        function closeShareModal() { document.getElementById("share-modal").classList.add("hidden"); document.getElementById("share-modal").classList.remove("flex"); }
+        function openStoreManagerModal() { document.getElementById("store-manager-modal").classList.remove("hidden"); document.getElementById("store-manager-modal").classList.add("flex"); }
+        function closeStoreManagerModal() { document.getElementById("store-manager-modal").classList.add("hidden"); document.getElementById("store-manager-modal").classList.remove("flex"); }
+        
+        function openModal(type) {
+            currentModalType = type;
+            document.getElementById("data-modal").classList.remove("hidden");
+            document.getElementById("data-modal").classList.add("flex");
+            document.getElementById("modal-title").innerText = `Aggiungi ${type.toUpperCase()}`;
+            document.getElementById("modal-fields").innerHTML = `<input type="text" id="m-name" placeholder="Titolo o Nome" class="w-full bg-zinc-800 border border-zinc-700 rounded-xl p-3 text-sm text-white">`;
+        }
+        function closeModal() { document.getElementById("data-modal").classList.add("hidden"); document.getElementById("data-modal").classList.remove("flex"); }
+
+        function saveItem() {
+            let val = document.getElementById("m-name")?.value.trim();
+            if (!val) return;
+            if (currentModalType === 'grocery') {
+                appData.grocery.push({ name: val, category: "Generale", icon: "🛒", checked: false });
+            } else if (currentModalType === 'meal') {
+                appData.meals.push({ day: "Oggi", type: "Pasto", name: val, portions: 2, baseCost: 2.50, year: "2026", img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=150&q=80" });
+            } else if (currentModalType === 'film') {
+                appData.films.push({ id: Date.now(), name: val, info: "Manuale", year: "2026", rating: "heart", img: "https://via.placeholder.com/150" });
+            } else if (currentModalType === 'serie') {
+                appData.series.push({ id: Date.now(), name: val, info: "Manuale", year: "2026", rating: "heart", img: "https://via.placeholder.com/150" });
+            } else if (currentModalType === 'libro') {
+                appData.books.push({ id: Date.now(), name: val, info: "Manuale", year: "2026", rating: "heart", img: "https://via.placeholder.com/150" });
+            } else if (currentModalType === 'musica') {
+                appData.music.push({ id: Date.now(), name: val, info: "Manuale", year: "2026", rating: "heart", img: "https://via.placeholder.com/150" });
+            } else if (currentModalType === 'viaggio') {
+                appData.travels.push({ id: Date.now(), name: val, info: "Pianificato", img: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=300&q=80", stops: ["Pianificazione tappa principale"] });
+            }
+            saveData();
+            closeModal();
+        }
+
+        function deleteItem(category, index) { appData[category].splice(index, 1); saveData(); }
+        function toggleGrocery(index) { appData.grocery[index].checked = !appData.grocery[index].checked; saveData(); }
+        function quickAddGrocery(name, category, icon) {
+            appData.grocery.push({ name, category, icon, checked: false });
+            saveData();
+        }
+        function deleteGrocery(index) { appData.grocery.splice(index, 1); saveData(); }
+        function changePortions(index, amount) {
+            let current = appData.meals[index].portions || 1;
+            let updated = current + amount;
+            if (updated < 1) updated = 1;
+            appData.meals[index].portions = updated;
+            saveData();
+        }
+
+        renderApp();
+    </script>
+</body>
+</html>
