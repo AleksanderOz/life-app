@@ -1,5 +1,7 @@
 <!doctype html>
 <html lang="it" class="dark">
+<!doctype html>
+<html lang="it" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +11,23 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="LIFE">
     
+    <!-- Manifesto incorporato per PWABuilder -->
+    <link rel="manifest" href='data:application/manifest+json,{
+        "name": "LIFE - AI Smart Manager",
+        "short_name": "LIFE",
+        "start_url": "./index.html",
+        "display": "standalone",
+        "background_color": "#121212",
+        "theme_color": "#121212",
+        "icons": [
+            {
+                "src": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=192&q=80",
+                "sizes": "192x192",
+                "type": "image/png"
+            }
+        ]
+    }'>
+
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         body { background-color: #121212; color: #e0e0e0; font-family: system-ui, -apple-system, sans-serif; }
